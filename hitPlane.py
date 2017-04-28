@@ -38,6 +38,11 @@ class Enemy(object):
         else:
             self.restart()
 
+def checkHit(enemy, bullet):
+    if (bullet.x > enemy.x and bullet.x < enemy.x + enemy.image.get_width()) and (bullet.y > enemy.y and bullet.y < enemy.y + enemy.image.get_height()):
+        enemy.restart()
+        bullet.active = False
+
 pygame.init()
 screen = pygame.display.set_mode((450, 800), 0, 32)
 pygame.display.set_caption('hello, world!')
@@ -66,6 +71,8 @@ while True:
         index_b = (index_b + 1) % count_b
     for b in bullets:
         if b.active:
+            for e in enemies:
+                checkHit(e, b)
             b.move()
             screen.blit(b.image, (b.x, b.y))
     for e in enemies:
