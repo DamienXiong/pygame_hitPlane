@@ -3,6 +3,22 @@ import pygame
 import random
 from sys import exit
 
+class Plane(object):
+    def restart(self):
+        self.x = 200
+        self.y = 600
+
+    def __init__(self):
+        self.restart()
+        self.image = pygame.image.load('plane.png').convert_alpha()
+
+    def move(self):
+        x, y = pygame.mouse.get_pos()
+        x -= self.image.get_width() / 2
+        y -= self.image.get_height() / 2
+        self.x = x
+        self.y = y
+
 class Bullet(object):
     def __init__(self):
         self.x = 0
@@ -43,11 +59,17 @@ def checkHit(enemy, bullet):
         enemy.restart()
         bullet.active = False
 
+def checkCrash(enemy, plane):
+    if (plane.x + 0.7 * plane.image.get_width() > enemy.x) and (plane.x + 0.3 * plane.image.get_width() < enemy.x + enemy.image.get_width()) and \
+       (plane.y + 0.7 * plane.image.get_height() > enemy.y) and (plane.y + 0.3 * plane.image.get_height() < enemy.y + enemy.image.get_height()):
+        return True
+    return False
+
 pygame.init()
 screen = pygame.display.set_mode((450, 800), 0, 32)
 pygame.display.set_caption('hello, world!')
 background = pygame.image.load('bg.jpg').convert_alpha()
-plane = pygame.image.load('plane.png').convert_alpha()
+plane = Plane()
 bullets = []
 for i in range(5):
     bullets.append(Bullet())
@@ -57,6 +79,7 @@ interval_b = 0
 enemies = []
 for i in range(5):
     enemies.append(Enemy())
+gameover = False
 
 while True:
     for event in pygame.event.get():
@@ -64,22 +87,25 @@ while True:
             pygame.quit()
             exit()
     screen.blit(background, (0, 0))
-    interval_b -= 1
-    if interval_b < 0:
-        bullets[index_b].restart()
-        interval_b = 100
-        index_b = (index_b + 1) % count_b
-    for b in bullets:
-        if b.active:
-            for e in enemies:
-                checkHit(e, b)
-            b.move()
-            screen.blit(b.image, (b.x, b.y))
-    for e in enemies:
-        e.move()
-        screen.blit(e.image, (e.x, e.y))
-    x, y = pygame.mouse.get_pos()
-    x -= plane.get_width() / 2
-    y -= plane.get_height() / 2
-    screen.blit(plane, (x, y))
+    if not gameover:
+        interval_b -= 1
+        if interval_b < 0:
+            bullets[index_b].restart()
+            interval_b = 100
+            index_b = (index_b + 1) % count_b
+        for b in bullets:
+            if b.active:
+                for e in enemies:
+                    checkHit(e, b)
+                b.move()
+                screen.blit(b.image, (b.x, b.y))
+        for e in enemies:
+            if checkCrash(e, plane):
+                gameover = True
+            e.move()
+            screen.blit(e.image, (e.x, e.y))
+        plane.move()
+        screen.blit(plane.image, (plane.x, plane.y))
+    else:
+        pass
     pygame.display.update()
