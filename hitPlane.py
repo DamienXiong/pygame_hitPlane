@@ -3,6 +3,7 @@ import pygame
 import random
 from sys import exit
 
+
 class Plane(object):
     def restart(self):
         self.x = 200
@@ -18,6 +19,7 @@ class Plane(object):
         y -= self.image.get_height() / 2
         self.x = x
         self.y = y
+
 
 class Bullet(object):
     def __init__(self):
@@ -38,6 +40,7 @@ class Bullet(object):
         self.y = mouseY - self.image.get_height() / 2
         self.active = True
 
+
 class Enemy(object):
     def restart(self):
         self.x = random.randint(50, 400)
@@ -54,20 +57,28 @@ class Enemy(object):
         else:
             self.restart()
 
+
 def checkHit(enemy, bullet):
-    if (bullet.x > enemy.x and bullet.x < enemy.x + enemy.image.get_width()) and (bullet.y > enemy.y and bullet.y < enemy.y + enemy.image.get_height()):
+    if (bullet.x > enemy.x and bullet.x < enemy.x + enemy.image.get_width()) and (
+            bullet.y > enemy.y and bullet.y < enemy.y + enemy.image.get_height()):
         enemy.restart()
         bullet.active = False
-
-def checkCrash(enemy, plane):
-    if (plane.x + 0.7 * plane.image.get_width() > enemy.x) and (plane.x + 0.3 * plane.image.get_width() < enemy.x + enemy.image.get_width()) and \
-       (plane.y + 0.7 * plane.image.get_height() > enemy.y) and (plane.y + 0.3 * plane.image.get_height() < enemy.y + enemy.image.get_height()):
         return True
     return False
 
+
+def checkCrash(enemy, plane):
+    if (plane.x + 0.7 * plane.image.get_width() > enemy.x) and (
+            plane.x + 0.3 * plane.image.get_width() < enemy.x + enemy.image.get_width()) and \
+            (plane.y + 0.7 * plane.image.get_height() > enemy.y) and (
+            plane.y + 0.3 * plane.image.get_height() < enemy.y + enemy.image.get_height()):
+        return True
+    return False
+
+
 pygame.init()
 screen = pygame.display.set_mode((450, 800), 0, 32)
-pygame.display.set_caption('hello, world!')
+pygame.display.set_caption("hello, world!")
 background = pygame.image.load('bg.jpg').convert_alpha()
 plane = Plane()
 bullets = []
@@ -80,12 +91,22 @@ enemies = []
 for i in range(5):
     enemies.append(Enemy())
 gameover = False
+score = 0
+font = pygame.font.Font(None, 32)
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
+        if gameover and event.type == pygame.MOUSEBUTTONUP:
+            plane.restart()
+            for e in enemies:
+                e.restart()
+            for b in bullets:
+                b.active = False
+            score = 0
+            gameover = False
     screen.blit(background, (0, 0))
     if not gameover:
         interval_b -= 1
@@ -96,7 +117,8 @@ while True:
         for b in bullets:
             if b.active:
                 for e in enemies:
-                    checkHit(e, b)
+                    if checkHit(e, b):
+                        score += 100
                 b.move()
                 screen.blit(b.image, (b.x, b.y))
         for e in enemies:
@@ -106,6 +128,9 @@ while True:
             screen.blit(e.image, (e.x, e.y))
         plane.move()
         screen.blit(plane.image, (plane.x, plane.y))
+        text = font.render('Score: %d' % score, 1, (0, 0, 0))
+        screen.blit(text, (0, 0))
     else:
-        pass
+        text = font.render('Score: %d' % score, 1, (0, 0, 0))
+        screen.blit(text, (190, 400))
     pygame.display.update()
